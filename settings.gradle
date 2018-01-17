@@ -10,6 +10,8 @@ include ':extensions:cloud:portability-cloud-google', ':extensions:cloud:portabi
 
 include ':extensions:data-transfer:portability-data-transfer-google', ':extensions:data-transfer:portability-data-transfer-microsoft'
 
+include ':extensions:auth:portability-auth-microsoft'
+
 include ':portability-test-utilities'
 
 
