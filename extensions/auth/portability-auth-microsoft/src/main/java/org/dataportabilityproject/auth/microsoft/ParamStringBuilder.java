@@ -4,18 +4,18 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
 /**
- * Builds a URL query part.
+ * Builds an HTTP parameter list.
  */
-public class QueryPartBuilder {
+public class ParamStringBuilder {
     private enum State {
         START, START_PARAM, PARAM_VALUE, END_PARAM
     }
 
-    private StringBuilder builder = new StringBuilder("?");
+    private StringBuilder builder = new StringBuilder();
 
     private State state = State.START;
 
-    public QueryPartBuilder startParam(String name) {
+    public ParamStringBuilder startParam(String name) {
         if (State.END_PARAM == state) {
             builder.append("&");
         }
@@ -24,7 +24,7 @@ public class QueryPartBuilder {
         return this;
     }
 
-    public QueryPartBuilder value(String value) {
+    public ParamStringBuilder value(String value) {
         if (State.PARAM_VALUE != state && State.START_PARAM != state) {
             throw new IllegalStateException("Parameter name not specified");
         }
@@ -40,7 +40,7 @@ public class QueryPartBuilder {
         return this;
     }
 
-    public QueryPartBuilder endParam() {
+    public ParamStringBuilder endParam() {
         state = State.END_PARAM;
         return this;
     }
