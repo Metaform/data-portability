@@ -1,5 +1,6 @@
 package org.dataportabilityproject.auth.microsoft;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -12,13 +13,14 @@ import org.dataportabilityproject.types.transfer.auth.AuthData;
 import org.dataportabilityproject.types.transfer.auth.TokenAuthData;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Provides configuration for conducting an OAuth flow against the Microsoft Graph API.
+ * Provides configuration for conducting an OAuth flow against the Microsoft AD API. Returned tokens can be used to make requests against the Microsoft Graph API.
  * <p>
  * The flow is a two-step process. First, the user is sent to an authorization page and is then redirected to a address in this system with the authorization code.
- * The second step takes the authorization code and posts it aginst the AD API to obtain a token for querying the Graph API.
+ * The second step takes the authorization code and posts it against the AD API to obtain a token for querying the Graph API.
  */
 public class MicrosoftAuthDataGenerator implements AuthDataGenerator {
     public static final String AUTHORIZATION_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
@@ -28,6 +30,7 @@ public class MicrosoftAuthDataGenerator implements AuthDataGenerator {
     private Supplier<String> clientIdSupplier;
     private Supplier<String> clientSecretSupplier;
     private OkHttpClient httpClient;
+    private ObjectMapper mapper;
 
     /**
      * Ctor.
@@ -35,22 +38,24 @@ public class MicrosoftAuthDataGenerator implements AuthDataGenerator {
      * @param redirectPath the path part this generator is configured to request OAuth authentication code responses be sent to
      * @param clientIdSupplier The Application ID that the registration portal (apps.dev.microsoft.com) assigned the portability instance
      * @param clientSecretSupplier The application secret that was created in the app registration portal for the portability instance
+     * @param mapper the mapper for deserializing responses from JSON
      */
-    public MicrosoftAuthDataGenerator(String redirectPath, Supplier<String> clientIdSupplier, Supplier<String> clientSecretSupplier, OkHttpClient client) {
+    public MicrosoftAuthDataGenerator(String redirectPath, Supplier<String> clientIdSupplier, Supplier<String> clientSecretSupplier, OkHttpClient client, ObjectMapper mapper) {
         this.redirectPath = redirectPath;
         this.clientIdSupplier = clientIdSupplier;
         this.clientSecretSupplier = clientSecretSupplier;
         httpClient = client;
+        this.mapper = mapper;
     }
 
     public AuthFlowConfiguration generateConfiguration(String callbackBaseUrl, String id) {
         // constructs a request for the Microsoft Graph authorization code.
         String redirectUrl = callbackBaseUrl + redirectPath;
         String queryPart = constructAuthQueryPart(redirectUrl, id, "user.read", "mail.read", "Contacts.ReadWrite");
-        return new AuthFlowConfiguration(AUTHORIZATION_URL + queryPart);
+        return new AuthFlowConfiguration(AUTHORIZATION_URL + "?" + queryPart);
     }
 
-    public AuthData generateAuthData(String callbackBaseUrl, String authCode, String id, AuthData initialAuthData, String extra) {
+    public TokenAuthData generateAuthData(String callbackBaseUrl, String authCode, String id, AuthData initialAuthData, String extra) {
         String redirectUrl = callbackBaseUrl + redirectPath;
         String params = constructTokenParams(authCode, redirectUrl, "user.read", "Contacts.ReadWrite");
 
@@ -64,7 +69,13 @@ public class MicrosoftAuthDataGenerator implements AuthDataGenerator {
                 throw new RuntimeException("Token body was null:" + tokenResponse.code() + ":" + "<empty body>");
             }
             String token = new String(tokenBody.bytes());
-            return new TokenAuthData(token);
+            Map<String, String> map = mapper.reader().forType(Map.class).readValue(token);
+            String accessToken = map.get("access_token");
+            if (accessToken == null) {
+                // FIXME we need a way to report back errors creating a token, perhaps by changing the return type
+                throw new RuntimeException("Token body was null:" + tokenResponse.code() + ":" + "Not in params");
+            }
+            return new TokenAuthData(accessToken);
         } catch (IOException e) {
             // FIXME we need a way to report back errors creating a token, perhaps by changing the return type
             throw new RuntimeException(e);
@@ -98,6 +109,9 @@ public class MicrosoftAuthDataGenerator implements AuthDataGenerator {
             throw new IllegalArgumentException("At least one OAuth scope must be specified");
         }
         ParamStringBuilder builder = new ParamStringBuilder();
+
+        String clientId = clientIdSupplier.get();
+        builder.startParam("client_id").value(clientId).endParam();
 
         builder.startParam("code").value(authCode).endParam();
         builder.startParam("client_secret").value(clientSecretSupplier.get()).endParam();
