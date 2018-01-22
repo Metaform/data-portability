@@ -1,4 +1,4 @@
-package org.dataportabilityproject.auth.microsoft;
+package org.dataportabilityproject.auth.microsoft.harness;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
