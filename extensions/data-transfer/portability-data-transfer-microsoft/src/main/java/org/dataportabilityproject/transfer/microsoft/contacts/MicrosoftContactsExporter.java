@@ -11,6 +11,7 @@ import org.dataportabilityproject.spi.transfer.provider.Exporter;
 import org.dataportabilityproject.spi.transfer.types.ContinuationData;
 import org.dataportabilityproject.transfer.microsoft.transformer.TransformResult;
 import org.dataportabilityproject.transfer.microsoft.transformer.TransformerService;
+import org.dataportabilityproject.transfer.microsoft.types.GraphPagination;
 import org.dataportabilityproject.types.transfer.auth.TokenAuthData;
 import org.dataportabilityproject.types.transfer.models.DataModel;
 import org.dataportabilityproject.types.transfer.models.contacts.ContactsModelWrapper;
@@ -38,9 +39,19 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, DataMo
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public ExportResult<DataModel> export(TokenAuthData authData) {
-        Request.Builder graphReqBuilder = new Request.Builder().url(CONTACTS_URL);
+        return doExport(authData, CONTACTS_URL);
+    }
+
+    @Override
+    public ExportResult<DataModel> export(TokenAuthData authData, ContinuationData continuationData) {
+        GraphPagination graphPagination = (GraphPagination) continuationData.getPaginationData();
+        return doExport(authData, graphPagination.getNextLink());
+    }
+
+    @SuppressWarnings("unchecked")
+    private ExportResult<DataModel> doExport(TokenAuthData authData, String url) {
+        Request.Builder graphReqBuilder = new Request.Builder().url(url);
         graphReqBuilder.header("Authorization", "Bearer " + authData.getToken());
 
         try (Response graphResponse = client.newCall(graphReqBuilder.build()).execute()) {
@@ -50,22 +61,21 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, DataMo
             }
             String graphBody = new String(body.bytes());
             Map graphMap = objectMapper.reader().forType(Map.class).readValue(graphBody);
-            String nextLink = (String) graphMap.get("@odata.nextLink");
+
+            String nextLink = (String) graphMap.get(ODATA_NEXT);
+            ContinuationData continuationData = nextLink == null ? null : new ContinuationData(new GraphPagination(nextLink));
+
             List<Map<String, Object>> rawContacts = (List<Map<String, Object>>) graphMap.get("value");
             if (rawContacts == null) {
                 return new ExportResult<>(ExportResult.ResultType.END);
             }
+            
             ContactsModelWrapper wrapper = transform(rawContacts);
-            return new ExportResult<>(ExportResult.ResultType.CONTINUE, wrapper);
+            return new ExportResult<>(ExportResult.ResultType.CONTINUE, wrapper, continuationData);
         } catch (IOException e) {
             e.printStackTrace();  // FIXME log error
             return new ExportResult<>(ExportResult.ResultType.ERROR, "Error retrieving contacts: " + e.getMessage());
         }
-    }
-
-    @Override
-    public ExportResult<DataModel> export(TokenAuthData authData, ContinuationData continuationData) {
-        throw new UnsupportedOperationException();
     }
 
     private ContactsModelWrapper transform(List<Map<String, Object>> rawContacts) {
@@ -84,5 +94,6 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, DataMo
 
         return new ContactsModelWrapper(contacts);
     }
+
 
 }
