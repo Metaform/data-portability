@@ -46,7 +46,7 @@ public class AuthTestDriver {
      *
      * @return the token
      */
-    public String getOAuthTokenCode() throws Exception {
+    public TokenAuthData getOAuthTokenCode() throws Exception {
 
         OkHttpClient client = TestHelper.createTestBuilder(callbackHost).build();
         ObjectMapper mapper = new ObjectMapper();
@@ -66,7 +66,7 @@ public class AuthTestDriver {
         TokenAuthData tokenData = dataGenerator.generateAuthData(callbackBase, authCode, "1", configuration.getInitialAuthData(), null);
 
         System.out.println("TOKEN: " + tokenData.getToken());
-        return tokenData.getToken();
+        return tokenData;
     }
 
     private String retrieveAuthCode(OkHttpClient client) throws IOException {
