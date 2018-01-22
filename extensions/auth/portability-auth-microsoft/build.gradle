@@ -18,8 +18,8 @@ dependencies {
     compile project(':portability-spi-gateway')
     compile "com.google.http-client:google-http-client:${googleHttpClientVersion}"
     compile "com.google.http-client:google-http-client-jackson2:${googleHttpClientVersion}"
-    compile 'com.squareup.okhttp3:okhttp:3.9.1'
-    compile 'com.squareup.okhttp3:logging-interceptor:3.9.1'
+    compile "com.squareup.okhttp3:okhttp:${okHttpVersion}"
+    compile "com.squareup.okhttp3:logging-interceptor:${okHttpVersion}"
 }
 
 
