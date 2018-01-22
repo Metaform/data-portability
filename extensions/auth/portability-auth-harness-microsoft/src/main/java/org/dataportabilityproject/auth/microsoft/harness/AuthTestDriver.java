@@ -1,10 +1,11 @@
-package org.dataportabilityproject.auth.microsoft;
+package org.dataportabilityproject.auth.microsoft.harness;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.dataportabilityproject.auth.microsoft.MicrosoftAuthDataGenerator;
 import org.dataportabilityproject.spi.gateway.types.AuthFlowConfiguration;
 import org.dataportabilityproject.types.transfer.auth.TokenAuthData;
 
@@ -14,7 +15,6 @@ import java.net.URI;
 import java.util.Objects;
 
 import static java.lang.System.getProperty;
-import static junit.framework.TestCase.fail;
 
 /**
  *
@@ -37,9 +37,8 @@ public class AuthTestDriver {
         authRetrievalUrl = callbackBase + "/code";
     }
 
-    // @Test
-    public void runAsTest() throws Exception {
-        getOAuthTokenCode();
+    public static void main(String... args) throws Exception {
+        new AuthTestDriver().getOAuthTokenCode();
     }
 
     /**
@@ -76,7 +75,7 @@ public class AuthTestDriver {
         try (Response authResponse = client.newCall(builder.build()).execute()) {
             ResponseBody authBody = authResponse.body();
             if (authBody == null) {
-                fail("AUTH ERROR: " + authResponse.code() + ":" + "<empty body>");
+                throw new AssertionError("AUTH ERROR: " + authResponse.code() + ":" + "<empty body>");
             }
             String authCode = new String(authBody.bytes());
 
