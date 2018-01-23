@@ -4,6 +4,7 @@ import ezvcard.VCard;
 import ezvcard.io.json.JCardReader;
 import org.dataportabilityproject.spi.transfer.provider.ImportResult;
 import org.dataportabilityproject.spi.transfer.provider.Importer;
+import org.dataportabilityproject.transfer.microsoft.transformer.TransformerService;
 import org.dataportabilityproject.types.transfer.auth.TokenAuthData;
 import org.dataportabilityproject.types.transfer.models.contacts.ContactsModelWrapper;
 
@@ -15,6 +16,12 @@ import java.util.List;
  */
 public class MicrosoftContactsImporter implements Importer<TokenAuthData, ContactsModelWrapper> {
     private static final String CONTACTS_URL = "https://graph.microsoft.com/v1.0/me/contacts";
+
+    private TransformerService transformerService;
+
+    public MicrosoftContactsImporter(TransformerService transformerService) {
+        this.transformerService = transformerService;
+    }
 
     @Override
     public ImportResult importItem(TokenAuthData authData, ContactsModelWrapper wrapper) {
