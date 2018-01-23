@@ -13,7 +13,6 @@ import org.dataportabilityproject.transfer.microsoft.transformer.TransformResult
 import org.dataportabilityproject.transfer.microsoft.transformer.TransformerService;
 import org.dataportabilityproject.transfer.microsoft.types.GraphPagination;
 import org.dataportabilityproject.types.transfer.auth.TokenAuthData;
-import org.dataportabilityproject.types.transfer.models.DataModel;
 import org.dataportabilityproject.types.transfer.models.contacts.ContactsModelWrapper;
 
 import java.io.IOException;
@@ -24,7 +23,7 @@ import java.util.Map;
 /**
  * Exports Microsoft contacts using the Graph API.
  */
-public class MicrosoftContactsExporter implements Exporter<TokenAuthData, DataModel> {
+public class MicrosoftContactsExporter implements Exporter<TokenAuthData, ContactsModelWrapper> {
     private static final String CONTACTS_URL = "https://graph.microsoft.com/v1.0/me/contacts";
     private static final String ODATA_NEXT = "@odata.nextLink";
 
@@ -39,18 +38,18 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, DataMo
     }
 
     @Override
-    public ExportResult<DataModel> export(TokenAuthData authData) {
+    public ExportResult<ContactsModelWrapper> export(TokenAuthData authData) {
         return doExport(authData, CONTACTS_URL);
     }
 
     @Override
-    public ExportResult<DataModel> export(TokenAuthData authData, ContinuationData continuationData) {
+    public ExportResult<ContactsModelWrapper> export(TokenAuthData authData, ContinuationData continuationData) {
         GraphPagination graphPagination = (GraphPagination) continuationData.getPaginationData();
         return doExport(authData, graphPagination.getNextLink());
     }
 
     @SuppressWarnings("unchecked")
-    private ExportResult<DataModel> doExport(TokenAuthData authData, String url) {
+    private ExportResult<ContactsModelWrapper> doExport(TokenAuthData authData, String url) {
         Request.Builder graphReqBuilder = new Request.Builder().url(url);
         graphReqBuilder.header("Authorization", "Bearer " + authData.getToken());
 
