@@ -28,6 +28,13 @@ public final class TransformerHelper {
         return Optional.ofNullable((List<Map<String, String>>) map.get(key));
     }
 
+    public static <K, V> void safeSet(K key, V value, Map<K, V> map) {
+        if (value == null) {
+            return;
+        }
+        map.put(key, value);
+    }
+
     private TransformerHelper() {
     }
 }

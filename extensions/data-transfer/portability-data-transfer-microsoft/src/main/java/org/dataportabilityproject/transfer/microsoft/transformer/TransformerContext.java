@@ -9,6 +9,8 @@ public interface TransformerContext {
 
     /**
      * Transform the input instance into an instance of a result type.
+     * <p>
+     * This method supports null input values; if the input is null, the same will be returned.
      *
      * @param resultType the type to transform to
      * @param input the input instance
