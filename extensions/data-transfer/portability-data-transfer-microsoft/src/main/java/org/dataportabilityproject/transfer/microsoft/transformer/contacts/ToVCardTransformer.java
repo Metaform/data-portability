@@ -22,7 +22,7 @@ import static org.dataportabilityproject.transfer.microsoft.transformer.common.T
  *
  * TODO: Handle contact lists (folders)
  */
-public class VCardTransformer implements BiFunction<Map<String, Object>, TransformerContext, VCard> {
+public class ToVCardTransformer implements BiFunction<Map<String, Object>, TransformerContext, VCard> {
 
     @Override
     @SuppressWarnings("unchecked")
