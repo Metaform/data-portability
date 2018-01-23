@@ -2,6 +2,7 @@ package org.dataportabilityproject.transfer.microsoft.transformer;
 
 import ezvcard.VCard;
 import ezvcard.property.Address;
+import org.dataportabilityproject.transfer.microsoft.transformer.contacts.ToGraphAddressTransformer;
 import org.dataportabilityproject.transfer.microsoft.transformer.contacts.ToGraphContactTransformer;
 import org.dataportabilityproject.transfer.microsoft.transformer.contacts.ToVCardAddressTransformer;
 import org.dataportabilityproject.transfer.microsoft.transformer.contacts.ToVCardTransformer;
@@ -47,6 +48,9 @@ public class TransformerServiceImpl implements TransformerService {
 
         @Override
         public <T> T transform(Class<T> resultType, Object input, TransformerContext context) {
+            if (input == null) {
+                return null;  // support null
+            }
             return TransformerServiceImpl.this.transform(resultType, input, context);
         }
 
@@ -65,6 +69,7 @@ public class TransformerServiceImpl implements TransformerService {
         cache.put(new TransformKey(LinkedHashMap.class, VCard.class), new ToVCardTransformer());
         cache.put(new TransformKey(LinkedHashMap.class, Address.class), new ToVCardAddressTransformer());
         cache.put(new TransformKey(VCard.class, LinkedHashMap.class), new ToGraphContactTransformer());
+        cache.put(new TransformKey(Address.class, LinkedHashMap.class), new ToGraphAddressTransformer());
     }
 
     private class TransformKey {
