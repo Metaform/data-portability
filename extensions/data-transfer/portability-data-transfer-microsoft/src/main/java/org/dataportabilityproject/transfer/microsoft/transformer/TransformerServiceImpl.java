@@ -36,7 +36,7 @@ public class TransformerServiceImpl implements TransformerService {
         Objects.requireNonNull(input, "No input specified");
         TransformKey key = new TransformKey(input.getClass(), resultType);
         BiFunction<Object, TransformerContext, T> function = (BiFunction<Object, TransformerContext, T>) cache.computeIfAbsent(key, v -> {
-            throw new IllegalArgumentException("Unsupported transform type: " + resultType);
+            throw new IllegalArgumentException("Unsupported transformation: " + input.getClass().getName() + ":" + resultType);
         });
         return function.apply(input, context);
     }

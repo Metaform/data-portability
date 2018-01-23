@@ -80,24 +80,23 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, Contac
 
     private ContactsModelWrapper transform(List<Map<String, Object>> rawContacts) {
         StringWriter stringWriter = new StringWriter();
-        JCardWriter writer = new JCardWriter(stringWriter);
-
-        for (Map<String, Object> rawContact : rawContacts) {
-            TransformResult<VCard> result = transformerService.transform(VCard.class, rawContact);
-            if (result.hasProblems()) {
-                // discard
-                // FIXME log problem
-                continue;
-            }
-            try {
+        try (JCardWriter writer = new JCardWriter(stringWriter);) {
+            for (Map<String, Object> rawContact : rawContacts) {
+                TransformResult<VCard> result = transformerService.transform(VCard.class, rawContact);
+                if (result.hasProblems()) {
+                    // discard
+                    // FIXME log problem
+                    continue;
+                }
                 writer.write(result.getTransformed());
-            } catch (IOException e) {
-                //TODO log
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            //TODO log
+            e.printStackTrace();
+            return new ContactsModelWrapper("");
         }
-
         return new ContactsModelWrapper(stringWriter.toString());
+
     }
 
 
