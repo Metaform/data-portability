@@ -7,16 +7,17 @@ import org.dataportabilityproject.transfer.microsoft.transformer.contacts.VCardT
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 
 /**
- * Currently this implementation assumes a 1:1 relationship between the result and input types since a result type is mapped to a single transformer function.
- * This could be extended if needed to map N:N by keying off result and input types.
+ *
  */
 public class TransformerServiceImpl implements TransformerService {
-    Map<Class<?>, BiFunction<?, ?, ?>> cache = new HashMap<>();
+    Map<TransformKey, BiFunction<?, ?, ?>> cache = new HashMap<>();
 
     public TransformerServiceImpl() {
         initContactTransformers();
@@ -31,7 +32,10 @@ public class TransformerServiceImpl implements TransformerService {
 
     @SuppressWarnings("unchecked")
     private <T> T transform(Class<T> resultType, Object input, TransformerContext context) {
-        BiFunction<Object, TransformerContext, T> function = (BiFunction<Object, TransformerContext, T>) cache.computeIfAbsent(resultType, v -> {
+        Objects.requireNonNull(resultType, "No result type specified");
+        Objects.requireNonNull(input, "No input specified");
+        TransformKey key = new TransformKey(input.getClass(), resultType);
+        BiFunction<Object, TransformerContext, T> function = (BiFunction<Object, TransformerContext, T>) cache.computeIfAbsent(key, v -> {
             throw new IllegalArgumentException("Unsupported transform type: " + resultType);
         });
         return function.apply(input, context);
@@ -57,9 +61,32 @@ public class TransformerServiceImpl implements TransformerService {
     }
 
     private void initContactTransformers() {
-        cache.put(VCard.class, new VCardTransformer());
-        cache.put(Address.class, new PhysicalAddressTransformer());
+        cache.put(new TransformKey(LinkedHashMap.class, VCard.class), new VCardTransformer());
+        cache.put(new TransformKey(LinkedHashMap.class, Address.class), new PhysicalAddressTransformer());
     }
 
+    private class TransformKey {
+        private Class<?> from;
+        private Class<?> to;
+
+        public TransformKey(Class<?> from, Class<?> to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            TransformKey that = (TransformKey) o;
+            return Objects.equals(from, that.from) &&
+                    Objects.equals(to, that.to);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(from, to);
+        }
+    }
 
 }
