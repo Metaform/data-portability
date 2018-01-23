@@ -14,8 +14,12 @@ public class PhysicalAddressTransformer implements BiFunction<Map<String, String
     @Override
     public Address apply(Map<String, String> addressMap, TransformerContext context) {
         Address address = new Address();
-
-
+        address.setStreetAddress(addressMap.get("street"));
+        address.setLocality(addressMap.get("city"));
+        address.setCountry(addressMap.get("countryOrRegion"));
+        address.setPostalCode(addressMap.get("postalCode"));
+        address.setRegion(addressMap.get("state"));
         return address;
     }
 }
+
