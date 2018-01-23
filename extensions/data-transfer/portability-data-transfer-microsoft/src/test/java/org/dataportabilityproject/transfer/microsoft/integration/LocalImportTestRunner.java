@@ -46,12 +46,19 @@ public class LocalImportTestRunner {
         JCardWriter writer = new JCardWriter(stringWriter);
 
         VCard card1 = new VCard();
-        StructuredName structuredName = new StructuredName();
-        structuredName.setGiven("Test Given Data1");
-        structuredName.setFamily("Test Surname Data1");
-        card1.setStructuredName(structuredName);
+        StructuredName structuredName1 = new StructuredName();
+        structuredName1.setGiven("Test Given Data1");
+        structuredName1.setFamily("Test Surname Data1");
+        card1.setStructuredName(structuredName1);
 
+        VCard card2 = new VCard();
+        StructuredName structuredName2 = new StructuredName();
+        structuredName2.setGiven("Test Given Data2");
+        structuredName2.setFamily("Test Surname Data2");
+        card2.setStructuredName(structuredName2);
+        
         writer.write(card1);
+        writer.write(card2);
         writer.close();
         return stringWriter.toString();
     }
