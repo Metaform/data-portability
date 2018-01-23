@@ -2,6 +2,7 @@ package org.dataportabilityproject.transfer.microsoft.contacts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ezvcard.VCard;
+import ezvcard.io.json.JCardWriter;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -16,7 +17,7 @@ import org.dataportabilityproject.types.transfer.auth.TokenAuthData;
 import org.dataportabilityproject.types.transfer.models.contacts.ContactsModelWrapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +69,7 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, Contac
             if (rawContacts == null) {
                 return new ExportResult<>(ExportResult.ResultType.END);
             }
-            
+
             ContactsModelWrapper wrapper = transform(rawContacts);
             return new ExportResult<>(ExportResult.ResultType.CONTINUE, wrapper, continuationData);
         } catch (IOException e) {
@@ -78,7 +79,8 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, Contac
     }
 
     private ContactsModelWrapper transform(List<Map<String, Object>> rawContacts) {
-        List<String> contacts = new ArrayList<>();
+        StringWriter stringWriter = new StringWriter();
+        JCardWriter writer = new JCardWriter(stringWriter);
 
         for (Map<String, Object> rawContact : rawContacts) {
             TransformResult<VCard> result = transformerService.transform(VCard.class, rawContact);
@@ -87,11 +89,15 @@ public class MicrosoftContactsExporter implements Exporter<TokenAuthData, Contac
                 // FIXME log problem
                 continue;
             }
-            String serialized = result.getTransformed().writeJson();
-            contacts.add(serialized);
+            try {
+                writer.write(result.getTransformed());
+            } catch (IOException e) {
+                //TODO log
+                e.printStackTrace();
+            }
         }
 
-        return new ContactsModelWrapper(contacts);
+        return new ContactsModelWrapper(stringWriter.toString());
     }
 
 

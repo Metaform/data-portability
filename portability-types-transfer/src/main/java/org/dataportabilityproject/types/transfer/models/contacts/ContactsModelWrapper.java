@@ -4,20 +4,18 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.dataportabilityproject.types.transfer.models.DataModel;
 
-import java.util.Collection;
-
 /**
  * A collection of contacts as serialized vCards.
  */
 public class ContactsModelWrapper extends DataModel {
-    private Collection<String> vCards;
+    private String vCards;
 
     @JsonCreator
-    public ContactsModelWrapper(@JsonProperty("vCards") Collection<String> vCards) {
+    public ContactsModelWrapper(@JsonProperty("vCards") String vCards) {
         this.vCards = vCards;
     }
 
-    public Collection<String> getVCards() {
+    public String getVCards() {
         return vCards;
     }
 }
