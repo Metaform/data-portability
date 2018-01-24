@@ -1,6 +1,14 @@
 
 # Development
 
+## Communication
+
+ * General questions and discussion: [portability-discuss@googlegroups.com](mailto:portability-discuss@googlegroups.com)
+ * [Slack channel](https://portability.slack.com), email 
+   [portability-maintainers@googlegroups.com](mailto:portability-maintainers@googlegroups.com) for invitation
+ * Weekly Skype call, email [portability-maintainers@googlegroups.com](mailto:portability-maintainers@googlegroups.com)
+   for invitation
+
 ## First Run/Setup
 
 ###  From top level directory
@@ -40,7 +48,7 @@ The following builds and optionally runs the API server on port 8080
 ## Building/Running the Worker locally
 The following builds and optionally runs the worker binary
 
- * `bin/build_and_run_jar.sh api local`
+ * `bin/build_and_run_jar.sh worker local`
    * This copies over LOCAL secrets and settings and compiles the worker jar.
    * This will also prompt you to run the jar.
 
@@ -51,6 +59,15 @@ The following commands will run the angular frontend in dev mode locally proxyin
 * `cd client/`
 * [optional] `npm install` #required first time through
 * `ng serve --port 3000 --proxy-config proxy.conf.json --environment local`
+
+## Running angular tests
+
+The following commands will run the angular frontend in dev mode locally proxying requests to the local webserver.
+
+* `cd client/`
+* `ng test --env=local -sm=false`
+  * Flag for environment set to local
+  * Flag for sourcemaps set to false gives better debugging messages
 
 ## Deploying in production
 
