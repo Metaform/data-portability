@@ -45,7 +45,7 @@ public class Initializer {
     }
 
     private void createTables(Session session) {
-        String query = "CREATE TABLE IF NOT EXISTS " + JOB_TABLE + " (user_id int PRIMARY KEY, user_name text, user_bcity text)";
+        String query = "CREATE TABLE IF NOT EXISTS " + JOB_TABLE + " (job_id uuid PRIMARY KEY, job_data text)";
         session.execute(query);
     }
 

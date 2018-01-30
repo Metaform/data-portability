@@ -9,5 +9,5 @@ public interface MicrosoftCloudConstants {
 
     String JOB_TABLE = KEY_SPACE + ".jobstore";
 
-    String JOB_DATA_TABLE = KEY_SPACE + ".jobdatastore";
+    String TRANSFER_TABLE = KEY_SPACE + ".transferstore";
 }

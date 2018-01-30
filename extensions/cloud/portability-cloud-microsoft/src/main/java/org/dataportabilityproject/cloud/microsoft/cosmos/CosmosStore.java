@@ -44,12 +44,14 @@ public class CosmosStore implements JobStore {
         if (job.getId() != null) {
             throw new IllegalStateException("Job already created: " + job.getId());
         }
-        job.setId(UUID.randomUUID().toString());
+        UUID uuid = UUID.randomUUID();
+        job.setId(uuid.toString());
 
         PreparedStatement statement = session.prepare(JOB_INSERT);
         BoundStatement boundStatement = new BoundStatement(statement);
         try {
-            boundStatement.bind(job.getId(), mapper.writeValueAsString(job));
+            boundStatement.setUUID(0, uuid);
+            boundStatement.setString(1, mapper.writeValueAsString(job));
             session.execute(boundStatement);
         } catch (JsonProcessingException e) {
             throw new MicrosoftStorageException("Error creating job: " + job.getId(), e);
@@ -65,7 +67,8 @@ public class CosmosStore implements JobStore {
         PreparedStatement statement = session.prepare(JOB_UPDATE);
         BoundStatement boundStatement = new BoundStatement(statement);
         try {
-            boundStatement.bind(mapper.writeValueAsString(job), job.getId());
+            boundStatement.setString(0,mapper.writeValueAsString(job));
+            boundStatement.setUUID(1, UUID.fromString(job.getId()));
             session.execute(boundStatement);
         } catch (JsonProcessingException e) {
             throw new MicrosoftStorageException("Error deleting job: " + job.getId(), e);
@@ -76,7 +79,7 @@ public class CosmosStore implements JobStore {
     public PortabilityJob find(String id) {
         PreparedStatement statement = session.prepare(JOB_QUERY);
         BoundStatement boundStatement = new BoundStatement(statement);
-        boundStatement.bind(id);
+        boundStatement.bind(UUID.fromString(id));
 
         Row row = session.execute(boundStatement).one();
         String serialized = row.getString("job_data");
@@ -91,7 +94,8 @@ public class CosmosStore implements JobStore {
     public void remove(String id) {
         PreparedStatement statement = session.prepare(JOB_DELETE);
         BoundStatement boundStatement = new BoundStatement(statement);
-        session.execute(boundStatement.bind(id));
+        boundStatement.setUUID(0,UUID.fromString(id));
+        session.execute(boundStatement);
     }
 
     @Override

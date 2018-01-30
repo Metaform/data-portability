@@ -20,6 +20,7 @@ import static org.dataportabilityproject.cloud.microsoft.cosmos.CosmosStore.JOB_
 import static org.dataportabilityproject.cloud.microsoft.cosmos.CosmosStore.JOB_QUERY;
 import static org.dataportabilityproject.cloud.microsoft.cosmos.CosmosStore.JOB_UPDATE;
 import static org.dataportabilityproject.spi.cloud.types.PortabilityJob.State.COMPLETE;
+import static org.scassandra.cql.PrimitiveType.UUID;
 import static org.scassandra.cql.PrimitiveType.VARCHAR;
 import static org.scassandra.matchers.Matchers.preparedStatementRecorded;
 
@@ -34,33 +35,34 @@ public class CosmosStoreTest {
     @Ignore
     public void verifyCreateAndFind() throws Exception {
         PrimingRequest.Then.ThenBuilder thenInsert = PrimingRequest.then();
-        thenInsert.withVariableTypes(VARCHAR, VARCHAR);
+        thenInsert.withVariableTypes(UUID, VARCHAR);
         PrimingRequest createRequest = PrimingRequest.preparedStatementBuilder().withQuery(JOB_INSERT).withThen(thenInsert).build();
 
         cassandra.primingClient().prime(createRequest);
 
         PortabilityJob primeJob = new PortabilityJob();
-        primeJob.setId("1");
+        primeJob.setId(java.util.UUID.randomUUID().toString());
         Map row = Collections.singletonMap("job_data", new ObjectMapper().writeValueAsString(primeJob));
 
         PrimingRequest.Then.ThenBuilder thenQuery = PrimingRequest.then();
         PrimingRequest findRequest = PrimingRequest.preparedStatementBuilder()
                 .withQuery(JOB_QUERY)
-                .withThen(thenQuery.withVariableTypes(VARCHAR).withColumnTypes(ColumnMetadata.column("job_id", VARCHAR)).withRows(row))
+                .withThen(thenQuery.withVariableTypes(UUID).withColumnTypes(ColumnMetadata.column("job_id", UUID)).withRows(row))
                 .build();
 
         cassandra.primingClient().prime(findRequest);
 
         PrimingRequest.Then.ThenBuilder thenUpdate = PrimingRequest.then();
+        thenUpdate.withVariableTypes(VARCHAR, UUID).withColumnTypes(ColumnMetadata.column("job_data", VARCHAR),ColumnMetadata.column("job_id", UUID));
         PrimingRequest updateRequest = PrimingRequest.preparedStatementBuilder()
                 .withQuery(JOB_UPDATE)
-                .withThen(thenUpdate.withVariableTypes(VARCHAR).withColumnTypes(ColumnMetadata.column("job_data", VARCHAR)))
+                .withThen(thenUpdate)
                 .build();
 
         cassandra.primingClient().prime(updateRequest);
 
         PrimingRequest.Then.ThenBuilder thenRemove = PrimingRequest.then();
-        thenRemove.withVariableTypes(VARCHAR);
+        thenRemove.withVariableTypes(UUID);
         PrimingRequest removeRequest = PrimingRequest.preparedStatementBuilder().withQuery(JOB_DELETE).withThen(thenRemove).build();
         cassandra.primingClient().prime(removeRequest);
 
@@ -76,7 +78,7 @@ public class CosmosStoreTest {
         PreparedStatementExecution expectedStatement = PreparedStatementExecution.builder()
             .withPreparedStatementText(JOB_DELETE)
             .withConsistency("LOCAL_ONE")
-            .withVariables("1")
+            .withVariables(primeJob.getId())
             .build();
 
         Assert.assertThat(cassandra.activityClient().retrievePreparedStatementExecutions(), preparedStatementRecorded(expectedStatement));
