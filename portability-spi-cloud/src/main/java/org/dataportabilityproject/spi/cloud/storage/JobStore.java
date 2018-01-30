@@ -29,7 +29,14 @@ public interface JobStore {
      *
      * REVIEW: Maybe there should just be state transition-specific methods, e.g cancel(), complete(), etc.?
      */
-    void remove(PortabilityJob job);
+    void remove(String id);
+
+    /**
+     * Returns the job for the id or null if not found.
+     *
+     * @param id the job id
+     */
+    PortabilityJob find(String id);
 
     /**
      * Returns a model instance for the id of the given type or null if not found.
