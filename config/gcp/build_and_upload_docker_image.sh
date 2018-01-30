@@ -1,5 +1,19 @@
-#!/bin/sh
-
+#
+# Copyright 2018 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# -----------------------------------------------------------------------
 # Interactive script to build a Docker image for the given binary and environment.
 # Can optionally build a new jar, build a new docker image, and upload it to GCP based on the
 # command prompts.
@@ -17,6 +31,8 @@
 # ex: build_and_upload_docker_image.sh api qa qa2
 # Will package and deploy portability-api using config/environments/qa/settings.yaml and
 # project BASE_PROJECT_ID-qa2
+#
+#!/bin/sh
 
 if [[ $(pwd) != */data-portability ]]; then
   echo "Please run out of /data-portability directory. Aborting."
@@ -44,6 +60,7 @@ BINARY=$1
 ENV=$2
 PROJECT_ID_SUFFIX=$3
 SRC_DIR="portability-$BINARY"
+GIT_COMMIT=$(git log -1 --format=%h)
 DEBUG_PORT=5005
 if [[ $BINARY == "worker" ]]; then
   DEBUG_PORT=5006
@@ -107,12 +124,15 @@ EXPOSE 5005/tcp"
 fi
 
 # And onto generating the dockerfile...
+# Tag it with the git commit. To find the git commit of an image
+# once uploaded to GCP, pull the image and 'docker inspect' it
 cat >Dockerfile <<EOF
 FROM gcr.io/google-appengine/openjdk:8
 COPY $SRC_DIR/target/$SRC_DIR-1.0-SNAPSHOT.jar /$BINARY.jar
 $LOCAL_DEBUG_SETTINGS
 ENTRYPOINT ["java", $OPTIONAL_DEBUG_FLAG "-jar", "/$BINARY.jar"]
 EXPOSE 8080/tcp
+LABEL git_commit=$GIT_COMMIT
 EOF
 
 echo -e "\nGenerated Dockerfile:
