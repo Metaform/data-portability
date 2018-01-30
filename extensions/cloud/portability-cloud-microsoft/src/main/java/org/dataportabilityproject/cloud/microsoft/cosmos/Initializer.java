@@ -3,6 +3,7 @@ package org.dataportabilityproject.cloud.microsoft.cosmos;
 import com.datastax.driver.core.Session;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.dataportabilityproject.cloud.microsoft.cosmos.MicrosoftCloudConstants.DATA_TABLE;
 import static org.dataportabilityproject.cloud.microsoft.cosmos.MicrosoftCloudConstants.JOB_TABLE;
 import static org.dataportabilityproject.cloud.microsoft.cosmos.MicrosoftCloudConstants.KEY_SPACE;
 
@@ -45,8 +46,10 @@ public class Initializer {
     }
 
     private void createTables(Session session) {
-        String query = "CREATE TABLE IF NOT EXISTS " + JOB_TABLE + " (job_id uuid PRIMARY KEY, job_data text)";
-        session.execute(query);
+        String jobTableQuery = "CREATE TABLE IF NOT EXISTS " + JOB_TABLE + " (job_id uuid PRIMARY KEY, job_data text)";
+        session.execute(jobTableQuery);
+        String dataTableQuery = "CREATE TABLE IF NOT EXISTS " + DATA_TABLE + " (data_id uuid  PRIMARY KEY, data_model text)";
+        session.execute(dataTableQuery);
     }
 
 

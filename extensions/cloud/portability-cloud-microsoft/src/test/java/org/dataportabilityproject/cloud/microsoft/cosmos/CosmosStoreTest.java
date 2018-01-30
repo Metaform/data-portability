@@ -85,6 +85,7 @@ public class CosmosStoreTest {
     }
 
     @Before
+    @Ignore
     public void setUp() {
         cassandra = ScassandraFactory.createServer();
         cassandra.start();

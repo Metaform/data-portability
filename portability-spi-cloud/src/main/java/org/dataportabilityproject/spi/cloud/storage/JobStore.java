@@ -39,24 +39,34 @@ public interface JobStore {
     PortabilityJob find(String id);
 
     /**
-     * Returns a model instance for the id of the given type or null if not found.
-     */
-    <T extends DataModel> T getData(Class<T> type, String id);
-
-    /**
      * Stores the given model instance associated with a job.
      */
-    <T extends DataModel> void store(String jobId, T model);
+    <T extends DataModel> void create(String jobId, T model);
+
+    /**
+     * Updates the given model instance associated with a job.
+     */
+    <T extends DataModel> void update(String jobId, T model);
+
+    /**
+     * Returns a model instance for the id of the given type or null if not found.
+     */
+    <T extends DataModel> T findData(Class<T> type, String id);
+
+    /**
+     * Removes ther data model instance.
+     */
+    void removeData(String id);
 
     /**
      * Stores a stream associated with a job using the given key.
      */
-    void store(String key, String jobId, InputStream stream);
+    void create(String jobId, String key, InputStream stream);
 
     /**
      * Returns stream data for the given key.
      */
-    InputStream getStream(String key);
+    InputStream getStream(String jobId, String key);
 
 
 }
