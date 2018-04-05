@@ -91,10 +91,6 @@ shadowJar {
     mergeServiceFiles()
     exclude '**/pom.properties'
     exclude '**/pom.xml'
-    copy {
-        from 'resources/'
-        into 'src/main/resources'
-    }
 }
 
 shadowJar.dependsOn(createSecretsFile)
