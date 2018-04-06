@@ -32,5 +32,7 @@ include ':extensions:data-transfer:portability-data-transfer-google'
 include ':extensions:auth:portability-auth-microsoft', ':extensions:auth:portability-auth-harness-microsoft'
 include ':extensions:data-transfer:portability-data-transfer-microsoft'
 
+include ':client'
+
 // TODO: remove old core dependencies
 include ':portability-core'
